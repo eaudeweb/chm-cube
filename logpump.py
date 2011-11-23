@@ -1,7 +1,9 @@
 from __future__ import division
 import sys
+import urllib
 from collections import namedtuple
 import re
+import simplejson as json
 from dateutil.parser import parse as parse_date
 
 
@@ -39,13 +41,16 @@ def parse_log(input_lines):
 
 def pump_to_cube(entry_list, url):
     def send_batch():
-        print batch
+        f = urllib.urlopen(url, json.dumps(batch))
+        result = f.read()
+        f.close()
+        assert json.loads(result) == {'status': 200}
         batch[:] = []
 
     batch = []
     for entry in entry_list:
         event = {
-            'type': 'chm-eu-request',
+            'type': 'chm_eu_request',
             'time': entry.datetime.isoformat(),
             'data': {
                 'duration_ms': entry.duration * 10**3,
@@ -59,7 +64,6 @@ def pump_to_cube(entry_list, url):
 
         if len(batch) >= 100:
             send_batch()
-            return
 
     if batch:
         send_batch()
