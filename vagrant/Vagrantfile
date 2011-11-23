@@ -6,4 +6,9 @@ Vagrant::Config.run do |config|
 
   config.vm.forward_port "cube-collect", 1080, 1080
   config.vm.forward_port "cube-evaluator", 1081, 1081
+
+  config.vm.provision :chef_solo do |chef|
+    chef.cookbooks_path = "cookbooks"
+    chef.add_recipe "vagrant_main"
+  end
 end
