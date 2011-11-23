@@ -40,6 +40,7 @@ def parse_log(input_lines):
 
 
 def pump_to_cube(entry_list, url):
+    BATCH_SIZE = 1000
     def send_batch():
         f = urllib.urlopen(url, json.dumps(batch))
         result = f.read()
@@ -62,7 +63,7 @@ def pump_to_cube(entry_list, url):
         }
         batch.append(event)
 
-        if len(batch) >= 100:
+        if len(batch) >= BATCH_SIZE:
             send_batch()
 
     if batch:
