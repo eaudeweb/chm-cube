@@ -1,10 +1,15 @@
 from __future__ import division
 import sys
 import urllib
+import logging
 from collections import namedtuple
 import re
 import simplejson as json
 from dateutil.parser import parse as parse_date
+
+
+log = logging.getLogger('logpump')
+log.setLevel(logging.DEBUG)
 
 
 LogEntry = namedtuple('LogEntry', 'datetime duration method url vhost '
@@ -41,12 +46,22 @@ def parse_log(input_lines):
 
 def pump_to_cube(entry_list, url):
     BATCH_SIZE = 1000
+
     def send_batch():
-        f = urllib.urlopen(url, json.dumps(batch))
-        result = f.read()
-        f.close()
-        assert json.loads(result) == {'status': 200}
-        batch[:] = []
+        result = None
+        try:
+            f = urllib.urlopen(url, json.dumps(batch))
+            result = f.read()
+            f.close()
+            assert json.loads(result) == {'status': 200}
+
+        except:
+            log.exception("failed sending batch, result is %r", result)
+            raise
+
+        else:
+            log.debug("sent batch of %d", len(batch))
+            batch[:] = []
 
     batch = []
     for entry in entry_list:
@@ -76,4 +91,5 @@ def main():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(loglevel=logging.DEBUG)
     main()
