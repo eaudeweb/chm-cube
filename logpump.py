@@ -47,6 +47,13 @@ def pump_to_cube(entry_list, url):
         event = {
             'type': 'chm-eu-request',
             'time': entry.datetime.isoformat(),
+            'data': {
+                'duration_ms': entry.duration * 10**3,
+                'path': entry.url,
+                'status': entry.status,
+                'size': entry.size,
+                'vhost': entry.vhost,
+            },
         }
         batch.append(event)
 
