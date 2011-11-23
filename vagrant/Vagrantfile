@@ -1,0 +1,9 @@
+Vagrant::Config.run do |config|
+  config.vm.box = "lucid32"
+
+  # Boot with a GUI so you can see the screen. (Default is headless)
+  # config.vm.boot_mode = :gui
+
+  config.vm.forward_port "cube-collect", 1080, 1080
+  config.vm.forward_port "cube-evaluator", 1081, 1081
+end
