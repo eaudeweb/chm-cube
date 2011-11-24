@@ -45,7 +45,7 @@ def parse_log(input_lines):
 
 
 def pump_to_cube(entry_list, url):
-    BATCH_SIZE = 1000
+    BATCH_SIZE = 10000
 
     def send_batch():
         result = None
