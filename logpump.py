@@ -38,7 +38,7 @@ def parse_log(input_lines):
                        method=match.group('method'),
                        url=match.group('url'),
                        vhost=match.group('vhost'),
-                       status=match.group('status'),
+                       status=int(match.group('status')),
                        size=size,
                        useragent=match.group('useragent'),
                        client=match.group('client'))
