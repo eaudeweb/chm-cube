@@ -22,8 +22,8 @@ def parse_log(input_lines):
         r'"(?P<method>\w+) (?P<url>\S*)( [^"]+)?" '
         r'(?P<status>\d+) '
         r'(?P<size>\S+) ' # number or "-"
-        r'"(?P<referrer>[^"]*)" '
-        r'"(?P<useragent>([^"]|\")+)" ' # referrer may contain '\"'
+        r'"(?P<referrer>([^"]|\\")*)" ' # referrer may contain '\"'
+        r'"(?P<useragent>([^"]|\\")+)" ' # user agent may contain '\"'
         r'(?P<duration>\d+) '
         r'(?P<vhost>\S+)$')
 
