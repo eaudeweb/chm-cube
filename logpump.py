@@ -33,7 +33,7 @@ def pump_to_cube(entry_list, url, logfile_name):
     for n, entry in enumerate(entry_list):
         event = {
             'id': "%s/%d" % (logfile_name, n),
-            'type': 'chm_eu_request',
+            'type': 'chm_eu',
             'time': entry.datetime.isoformat(),
             'data': {
                 'duration_ms': entry.duration * 10**3,
