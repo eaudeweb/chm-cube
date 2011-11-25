@@ -1,12 +1,17 @@
 import sys
 import urllib
 import logging
+import time
 import simplejson as json
 from apache_log import parse_log
 
 
 log = logging.getLogger('logpump')
 log.setLevel(logging.DEBUG)
+
+
+def to_unix(when):
+    return time.mktime(when.timetuple()) + when.microsecond / 1000000.
 
 
 def pump_to_cube(entry_list, url):
@@ -28,9 +33,17 @@ def pump_to_cube(entry_list, url):
             log.debug("sent batch of %d", len(batch))
             batch[:] = []
 
+    last_timestamp = None
     batch = []
     for entry in entry_list:
+        timestamp = to_unix(entry.datetime)
+        if not timestamp > last_timestamp:
+            log.warn("timestamps not strictly ascending: %r <= %r",
+                     timestamp, last_timestamp)
+        last_timestamp = timestamp
+
         event = {
+            'id': str(last_timestamp),
             'type': 'chm_eu_request',
             'time': entry.datetime.isoformat(),
             'data': {
