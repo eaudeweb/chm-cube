@@ -54,11 +54,12 @@ def mongo_schema():
     _mongo(_mongo_schema_js)
 
 
-def deploy_logtail():
-    import subprocess
-    def run(cmd):
-        subprocess.check_call(['ssh', env['host_string'], cmd])
+import subprocess
+def run(cmd):
+    subprocess.check_call(['ssh', env['host_string'], cmd])
 
+
+def deploy_logtail():
     run("git init '%s'" % REMOTE_REPO)
 
     git_remote = "%s:%s" % (env['host_string'], REMOTE_REPO)
@@ -71,3 +72,8 @@ def deploy_logtail():
     run("echo '*' > '%s/.gitignore'" % sandbox)
 
     run("cd '%s'; sandbox/bin/pip install -r requirements.txt" % REMOTE_REPO)
+
+
+def logtail():
+    run("%(repo)s/sandbox/bin/python %(repo)s/logtail.py %(logdir)s/access.log"
+        % {'repo': REMOTE_REPO, 'logdir': '/var/local/www-logs/apache/'})
