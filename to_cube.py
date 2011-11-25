@@ -22,6 +22,9 @@ class CubeUploader(object):
             self.flush()
 
     def flush(self):
+        if not self.records:
+            return
+
         result = None
         try:
             f = urllib.urlopen(self.url, json.dumps(self.records))
