@@ -1,3 +1,4 @@
+import os
 import subprocess
 from tempfile import TemporaryFile
 import simplejson as json
@@ -6,6 +7,8 @@ from fabric.api import local
 
 
 REMOTE_REPO = 'chm-cube'
+LOGTAIL_STATE_PATH = None
+
 
 try: from local_fabfile import *
 except: pass
@@ -75,6 +78,12 @@ def deploy_logtail():
 def logtail():
     last_id = None
 
+    if LOGTAIL_STATE_PATH is not None:
+        if os.path.isfile(LOGTAIL_STATE_PATH):
+            with open(LOGTAIL_STATE_PATH, 'rb') as f:
+                state = json.load(f)
+            last_id = state['last_id']
+
     while True:
         print 'requesting records with last_id=%r' % last_id
         last_id_str = '' if last_id is None else "'%s'" % last_id
@@ -91,6 +100,10 @@ def logtail():
             tmp.seek(0)
             state_json = subprocess.check_output(
                 ['python', 'import_logtail.py'], stdin=tmp)
+
+        if LOGTAIL_STATE_PATH is not None:
+            with open(LOGTAIL_STATE_PATH, 'wb') as f:
+                f.write(state_json)
 
         state = json.loads(state_json)
         if not state['get_more']:
