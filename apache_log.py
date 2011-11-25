@@ -34,3 +34,18 @@ def parse_log(input_lines):
                        size=size,
                        useragent=match.group('useragent'),
                        client=match.group('client'))
+
+
+def cube_events(log_file):
+    for n, entry in enumerate(parse_log(log_file)):
+        yield {
+            'type': 'chm_eu',
+            'time': entry.datetime.isoformat(),
+            'data': {
+                'duration_ms': entry.duration * 10**3,
+                'path': entry.url,
+                'status': entry.status,
+                'size': entry.size,
+                'vhost': entry.vhost,
+            },
+        }
