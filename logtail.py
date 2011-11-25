@@ -1,3 +1,5 @@
+import simplejson as json
+
 """
 read apache log file incrementally
 """
@@ -19,8 +21,10 @@ def main():
 
     log_file = open(current_filename)
     for n, event in enumerate(cube_events(log_file)):
+        if n > 10:
+            break
         event['id'] = "%s/%d" % (log_file_name, n)
-        print event
+        print json.dumps(event)
     log_file.close()
 
 
