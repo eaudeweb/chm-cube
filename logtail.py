@@ -1,3 +1,6 @@
+import os
+import sys
+from datetime import datetime, timedelta
 import simplejson as json
 
 """
@@ -14,7 +17,7 @@ def main():
     old_mtime = datetime.fromtimestamp(os.stat(old_filename).st_mtime)
     old_year, old_week, old_weekday = old_mtime.isocalendar()
     assert old_weekday == 7
-    year, week, n_weekday = (old_mtime + timedelta(days=7)).isocalendar()[:2]
+    year, week, n_weekday = (old_mtime + timedelta(days=7)).isocalendar()
     assert n_weekday == 7
 
     log_file_name = 'chm-eu/%d-%d' % (year, week)
