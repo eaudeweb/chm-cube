@@ -22,12 +22,24 @@ def main():
 
     log_file_name = 'chm-eu/%d-%d' % (year, week)
 
+    last_id = sys.argv[2] if len(sys.argv) > 2 else None
+
     log_file = open(current_filename)
+    batch_size = 100
+    count = 0
     for n, event in enumerate(cube_events(log_file)):
-        if n > 10:
-            break
-        event['id'] = "%s/%d" % (log_file_name, n)
+        event_id = "%s/%d" % (log_file_name, n)
+        if last_id is not None:
+            if event_id == last_id:
+                last_id = None
+            continue
+        event['id'] = event_id
         print json.dumps(event)
+        count += 1
+        if count > batch_size:
+            break
+    else:
+        print json.dumps(None)
     log_file.close()
 
 
