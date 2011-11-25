@@ -14,6 +14,7 @@ def main():
             get_more = False
             break
 
+        event['data']['logtail'] = True
         cube.add(event)
         last_id = event['id']
 
