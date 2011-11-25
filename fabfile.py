@@ -54,7 +54,7 @@ def mongo_schema():
 
 
 def run(cmd):
-    return subprocess.check_output(['ssh', env['host_string'], cmd])
+    return subprocess.check_output(['ssh', '-C', env['host_string'], cmd])
 
 
 def deploy_logtail():
