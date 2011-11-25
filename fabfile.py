@@ -1,3 +1,6 @@
+import subprocess
+from tempfile import TemporaryFile
+import simplejson as json
 from fabric.api import env
 from fabric.api import local
 
@@ -36,14 +39,10 @@ _mongo_schema_js = """\
 
 
 def _mongo(code):
-    import subprocess
-    from tempfile import TemporaryFile
-
     with TemporaryFile() as tmp:
         tmp.write(code)
         tmp.seek(0)
         subprocess.check_call(['mongo', 'cube_development'], stdin=tmp)
-        tmp.close()
 
 
 def mongo_drop():
@@ -54,9 +53,8 @@ def mongo_schema():
     _mongo(_mongo_schema_js)
 
 
-import subprocess
 def run(cmd):
-    subprocess.check_call(['ssh', env['host_string'], cmd])
+    return subprocess.check_output(['ssh', env['host_string'], cmd])
 
 
 def deploy_logtail():
@@ -75,5 +73,27 @@ def deploy_logtail():
 
 
 def logtail():
-    run("%(repo)s/sandbox/bin/python %(repo)s/logtail.py %(logdir)s/access.log"
-        % {'repo': REMOTE_REPO, 'logdir': '/var/local/www-logs/apache/'})
+    last_id = None
+
+    while True:
+        print 'requesting records with last_id=%r' % last_id
+        last_id_str = '' if last_id is None else "'%s'" % last_id
+        events_json = run("%(repo)s/sandbox/bin/python "
+                          "%(repo)s/logtail.py "
+                          "%(logdir)s/access.log %(last_id)s" % {
+                              'repo': REMOTE_REPO,
+                              'logdir': '/var/local/www-logs/apache/',
+                              'last_id': last_id_str,
+                          })
+
+        with TemporaryFile() as tmp:
+            tmp.write(events_json)
+            tmp.seek(0)
+            state_json = subprocess.check_output(
+                ['python', 'import_logtail.py'], stdin=tmp)
+
+        state = json.loads(state_json)
+        if not state['get_more']:
+            print 'last_id=%r' % last_id
+            break
+        last_id = state['last_id']
