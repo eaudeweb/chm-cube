@@ -1,0 +1,2 @@
+python-dateutil==1.5
+simplejson==2.2.1

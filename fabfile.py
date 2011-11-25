@@ -72,7 +72,7 @@ def deploy_logtail():
         {'sandbox': sandbox})
     run("echo '*' > '%s/.gitignore'" % sandbox)
 
-    run("cd '%s'; sandbox/bin/pip install -r requirements.txt" % REMOTE_REPO)
+    run("cd '%s'; sandbox/bin/pip install -r logtail-requirements.txt" % REMOTE_REPO)
 
 
 def logtail():
