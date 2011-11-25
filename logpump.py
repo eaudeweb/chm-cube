@@ -10,11 +10,7 @@ log = logging.getLogger('logpump')
 log.setLevel(logging.DEBUG)
 
 
-def to_unix(when):
-    return time.mktime(when.timetuple()) + when.microsecond / 1000000.
-
-
-def pump_to_cube(entry_list, url):
+def pump_to_cube(entry_list, url, logfile_name):
     BATCH_SIZE = 10000
 
     def send_batch():
@@ -33,17 +29,10 @@ def pump_to_cube(entry_list, url):
             log.debug("sent batch of %d", len(batch))
             batch[:] = []
 
-    last_timestamp = None
     batch = []
-    for entry in entry_list:
-        timestamp = to_unix(entry.datetime)
-        if not timestamp > last_timestamp:
-            log.warn("timestamps not strictly ascending: %r <= %r",
-                     timestamp, last_timestamp)
-        last_timestamp = timestamp
-
+    for n, entry in enumerate(entry_list):
         event = {
-            'id': str(last_timestamp),
+            'id': "%s/%d" % (logfile_name, n),
             'type': 'chm_eu_request',
             'time': entry.datetime.isoformat(),
             'data': {
@@ -65,7 +54,7 @@ def pump_to_cube(entry_list, url):
 
 def main():
     url = "http://localhost:1080/1.0/event/put"
-    pump_to_cube(parse_log(sys.stdin), url)
+    pump_to_cube(parse_log(sys.stdin), url, sys.argv[1])
 
 
 if __name__ == '__main__':
