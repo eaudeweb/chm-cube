@@ -1,7 +1,5 @@
 import sys
-import urllib
 import logging
-import time
 
 
 def main():
