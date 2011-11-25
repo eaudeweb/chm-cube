@@ -25,7 +25,7 @@ def main():
     last_id = sys.argv[2] if len(sys.argv) > 2 else None
 
     log_file = open(current_filename)
-    batch_size = 100
+    batch_size = 10000
     count = 0
     for n, event in enumerate(cube_events(log_file)):
         event_id = "%s/%d" % (log_file_name, n)
@@ -36,7 +36,7 @@ def main():
         event['id'] = event_id
         print json.dumps(event)
         count += 1
-        if count > batch_size:
+        if count >= batch_size:
             break
     else:
         print json.dumps(None)
