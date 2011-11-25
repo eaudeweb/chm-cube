@@ -6,32 +6,9 @@ import simplejson as json
 from apache_log import parse_log
 
 
-log = logging.getLogger('logpump')
-log.setLevel(logging.DEBUG)
-
-
-def pump_to_cube(entry_list, url, logfile_name):
-    BATCH_SIZE = 10000
-
-    def send_batch():
-        result = None
-        try:
-            f = urllib.urlopen(url, json.dumps(batch))
-            result = f.read()
-            f.close()
-            assert json.loads(result) == {'status': 200}
-
-        except:
-            log.exception("failed sending batch, result is %r", result)
-            raise
-
-        else:
-            log.debug("sent batch of %d", len(batch))
-            batch[:] = []
-
-    batch = []
+def pump_to_cube(entry_list, cube, logfile_name):
     for n, entry in enumerate(entry_list):
-        event = {
+        cube.add({
             'id': "%s/%d" % (logfile_name, n),
             'type': 'chm_eu',
             'time': entry.datetime.isoformat(),
@@ -42,19 +19,14 @@ def pump_to_cube(entry_list, url, logfile_name):
                 'size': entry.size,
                 'vhost': entry.vhost,
             },
-        }
-        batch.append(event)
-
-        if len(batch) >= BATCH_SIZE:
-            send_batch()
-
-    if batch:
-        send_batch()
+        })
 
 
 def main():
-    url = "http://localhost:1080/1.0/event/put"
-    pump_to_cube(parse_log(sys.stdin), url, sys.argv[1])
+    from to_cube import CubeUploader
+    cube = CubeUploader("http://localhost:1080/1.0/event/put")
+    pump_to_cube(parse_log(sys.stdin), cube, sys.argv[1])
+    cube.flush()
 
 
 if __name__ == '__main__':
