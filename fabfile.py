@@ -1,4 +1,11 @@
+from fabric.api import env
 from fabric.api import local
+
+
+REMOTE_REPO = 'chm-cube'
+
+try: from local_fabfile import *
+except: pass
 
 
 def to_cube(name):
@@ -45,3 +52,22 @@ def mongo_drop():
 
 def mongo_schema():
     _mongo(_mongo_schema_js)
+
+
+def deploy_logtail():
+    import subprocess
+    def run(cmd):
+        subprocess.check_call(['ssh', env['host_string'], cmd])
+
+    run("git init '%s'" % REMOTE_REPO)
+
+    git_remote = "%s:%s" % (env['host_string'], REMOTE_REPO)
+    local("git push -f '%s' master:incoming" % git_remote)
+    run("cd '%s'; git reset incoming --hard" % REMOTE_REPO)
+
+    sandbox = REMOTE_REPO + '/sandbox'
+    run("test -d '%(sandbox)s' || virtualenv --no-site-packages '%(sandbox)s'" %
+        {'sandbox': sandbox})
+    run("echo '*' > '%s/.gitignore'" % sandbox)
+
+    run("cd '%s'; sandbox/bin/pip install -r requirements.txt" % REMOTE_REPO)
