@@ -1,3 +1,4 @@
 python-dateutil==1.5
 simplejson==2.2.1
 pytz==2011n
+pymongo==2.0.1
