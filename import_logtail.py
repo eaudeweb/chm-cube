@@ -7,24 +7,25 @@ def main():
     from to_cube import CubeUploader
     cube = CubeUploader("http://localhost:1080/1.0/event/put")
 
-    last_id = None
+    bytes_offset = 0
+
     for line in sys.stdin:
         event = json.loads(line)
-        if event is None:
-            get_more = False
+        if 'logtail_end' in event:
+            get_more = event['logtail_has_more']
+            bytes_offset = event['logtail_bytes_offset']
             break
 
         event['data']['logtail'] = True
         cube.add(event)
-        last_id = event['id']
 
     else:
-        get_more = True
+        raise ValueError("json stream ended unexpectedly")
 
     cube.flush()
 
     print json.dumps({
-        'last_id': last_id,
+        'bytes_offset': bytes_offset,
         'get_more': get_more,
     })
 

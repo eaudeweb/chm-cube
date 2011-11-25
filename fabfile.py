@@ -76,23 +76,22 @@ def deploy_logtail():
 
 
 def logtail():
-    last_id = None
+    bytes_offset = None
 
     if LOGTAIL_STATE_PATH is not None:
         if os.path.isfile(LOGTAIL_STATE_PATH):
             with open(LOGTAIL_STATE_PATH, 'rb') as f:
                 state = json.load(f)
-            last_id = state['last_id']
+            bytes_offset = state['bytes_offset']
 
     while True:
-        print 'requesting records with last_id=%r' % last_id
-        last_id_str = '' if last_id is None else "'%s'" % last_id
+        print 'requesting records with bytes_offset=%r' % bytes_offset
         events_json = run("%(repo)s/sandbox/bin/python "
                           "%(repo)s/logtail.py "
-                          "%(logdir)s/access.log %(last_id)s" % {
+                          "%(logdir)s/access.log %(bytes_offset)d" % {
                               'repo': REMOTE_REPO,
                               'logdir': '/var/local/www-logs/apache/',
-                              'last_id': last_id_str,
+                              'bytes_offset': bytes_offset,
                           })
 
         with TemporaryFile() as tmp:
@@ -107,6 +106,6 @@ def logtail():
 
         state = json.loads(state_json)
         if not state['get_more']:
-            print 'last_id=%r' % last_id
+            print 'bytes_offset=%r' % bytes_offset
             break
-        last_id = state['last_id']
+        bytes_offset = state['bytes_offset']
