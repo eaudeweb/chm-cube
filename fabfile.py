@@ -75,9 +75,23 @@ def deploy_logtail():
     run("cd '%s'; sandbox/bin/pip install -r logtail-requirements.txt" % REMOTE_REPO)
 
 
-def logtail(skip='0/0'):
-    print 'requesting records with skip=%r' % skip
+def _wait_keyboard_interrupt():
+    import time
+    while True:
+        try:
+            time.sleep(100)
+        except KeyboardInterrupt:
+            return
 
+
+def logtail(skip=None):
+    if skip is None:
+        skip = ''
+        if LOGTAIL_STATE_PATH is not None and os.path.isfile(LOGTAIL_STATE_PATH):
+            with open(LOGTAIL_STATE_PATH, 'rb') as f:
+                skip = f.read().strip()
+
+    print 'requesting records with skip=%r' % skip
     cmd = ("%(repo)s/sandbox/bin/python "
            "%(repo)s/logtail.py "
            "%(logdir)s access.log %(skip)s") % {
@@ -86,15 +100,17 @@ def logtail(skip='0/0'):
                'skip': skip,
            }
 
-    print 'starting ssh logtail'
     ssh_logtail = subprocess.Popen(['ssh', '-C', env['host_string'], cmd],
                                    stdout=subprocess.PIPE)
-    print 'starting import_logtail'
     import_logtail = subprocess.Popen(['python', 'import_logtail.py'],
-                                      stdin=ssh_logtail.stdout)
-    print '...'
-    import_logtail.wait()
-    print 'import_logtail stopped'
+                                      stdin=ssh_logtail.stdout,
+                                      stdout=subprocess.PIPE)
+    _wait_keyboard_interrupt()
+    next_skip = import_logtail.communicate()[0]
+    print next_skip,
+    if LOGTAIL_STATE_PATH is not None:
+        with open(LOGTAIL_STATE_PATH, 'wb') as f:
+            f.write(next_skip)
+
     ssh_logtail.terminate()
     ssh_logtail.wait()
-    print 'ssh logtail stopped'
