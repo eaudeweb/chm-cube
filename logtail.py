@@ -86,7 +86,4 @@ def main():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(loglevel=logging.INFO)
-    BUFFER_SIZE = 46
-    SLEEP_TIME = 1
     main()
