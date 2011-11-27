@@ -81,6 +81,7 @@ class LogReader(object):
             event['_skip'] = '%d/%d' % (bytes_count + len(line), n + 1)
             json.dump(event, out_file)
             out_file.write('\n')
+            out_file.flush()
 
 
 def main():
