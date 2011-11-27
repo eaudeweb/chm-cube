@@ -45,7 +45,7 @@ def main():
         pass
 
     finally:
-        print "Next log record at offset %r." % (skip,)
+        print skip
 
     flush_thread.stop = True
     flush_thread.join()
