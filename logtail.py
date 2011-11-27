@@ -12,7 +12,7 @@ read apache log file incrementally
 
 
 BUFFER_SIZE = 2**16 # 64KB
-SLEEP_TIME = 30 # seconds
+SLEEP_TIME = 10 # seconds
 
 log = logging.getLogger('logtail')
 log.setLevel(logging.DEBUG)
