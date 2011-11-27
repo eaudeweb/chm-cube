@@ -29,11 +29,16 @@ def main():
     flush_thread = FlushThread(cube, flush_lock)
     flush_thread.start()
 
-    for line in sys.stdin:
-        event = json.loads(line)
-        event['data']['logtail'] = True
-        with flush_lock:
-            cube.add(event)
+    bytes_next = None
+    try:
+        for line in sys.stdin:
+            event = json.loads(line)
+            event['data']['logtail'] = True
+            bytes_next = event.pop('_bytes_next')
+            with flush_lock:
+                cube.add(event)
+    except KeyboardInterrupt:
+        print "Stopping. Next log record at offset %d." % (bytes_next,)
 
     flush_thread.stop = True
     flush_thread.join()

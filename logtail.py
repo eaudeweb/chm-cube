@@ -30,6 +30,7 @@ class LogReader(object):
 
         buf = ''
         prev_newline = 0
+        bytes_count = 0
 
         while True:
             buf += log_file.read(BUFFER_SIZE)
@@ -50,7 +51,8 @@ class LogReader(object):
                     break
 
                 line = buf[prev_newline:newline]
-                yield line
+                yield line, bytes_count
+                bytes_count += newline - prev_newline
                 prev_newline = newline
 
     def determine_log_file_name(self):
@@ -68,10 +70,11 @@ class LogReader(object):
     def stream_log_entries(self, out_file):
         log_file_name = self.determine_log_file_name()
 
-        for n, line in enumerate(self.log_lines()):
+        for n, (line, bytes_count) in enumerate(self.log_lines()):
             entry = parse_log_line(line)
             event = cube_event_for_entry(entry)
             event['id'] = "%s/%d" % (log_file_name, n)
+            event['_bytes_next'] = bytes_count + len(line)
             json.dump(event, out_file)
             out_file.write('\n')
 
