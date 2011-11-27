@@ -31,7 +31,10 @@ def main():
 
     skip = None
     try:
-        for line in sys.stdin:
+        while True:
+            line = sys.stdin.readline()
+            if not line:
+                break
             event = json.loads(line)
             event['data']['logtail'] = True
             skip = event.pop('_skip')
