@@ -29,12 +29,12 @@ def main():
     flush_thread = FlushThread(cube, flush_lock)
     flush_thread.start()
 
-    bytes_next = None
+    skip = None
     try:
         for line in sys.stdin:
             event = json.loads(line)
             event['data']['logtail'] = True
-            bytes_next = event.pop('_bytes_next')
+            skip = event.pop('_skip')
             with flush_lock:
                 cube.add(event)
 
@@ -42,7 +42,7 @@ def main():
         pass
 
     finally:
-        print "Next log record at offset %r." % (bytes_next,)
+        print "Next log record at offset %r." % (skip,)
 
     flush_thread.stop = True
     flush_thread.join()
