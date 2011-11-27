@@ -24,13 +24,14 @@ class LogReader(object):
         self.log_dir = log_dir
         self.log_basename = log_basename
 
-    def log_lines(self):
+    def log_lines(self, skip_bytes):
         log_file_path = os.path.join(self.log_dir, self.log_basename)
         log_file = open(log_file_path, 'rb')
+        log_file.seek(skip_bytes)
 
         buf = ''
         prev_newline = 0
-        bytes_count = 0
+        bytes_count = skip_bytes
 
         while True:
             buf += log_file.read(BUFFER_SIZE)
@@ -67,22 +68,25 @@ class LogReader(object):
 
         return 'chm-eu/%d-%d' % (year, week)
 
-    def stream_log_entries(self, out_file):
+    def stream_log_entries(self, out_file, skip):
         log_file_name = self.determine_log_file_name()
 
-        for n, (line, bytes_count) in enumerate(self.log_lines()):
+        skip_bytes, skip_entries = map(int, skip.split('/'))
+
+        for n, (line, bytes_count) in enumerate(self.log_lines(skip_bytes),
+                                                skip_entries):
             entry = parse_log_line(line)
             event = cube_event_for_entry(entry)
             event['id'] = "%s/%d" % (log_file_name, n)
-            event['_bytes_next'] = bytes_count + len(line)
+            event['_skip'] = '%d/%d' % (bytes_count + len(line), n + 1)
             json.dump(event, out_file)
             out_file.write('\n')
 
 
 def main():
-    log_dir, log_basename = sys.argv[1:3]
+    log_dir, log_basename, skip = sys.argv[1:4]
     log_reader = LogReader(log_dir, log_basename)
-    log_reader.stream_log_entries(sys.stdout)
+    log_reader.stream_log_entries(sys.stdout, skip)
 
 
 if __name__ == '__main__':
