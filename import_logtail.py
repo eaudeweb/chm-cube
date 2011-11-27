@@ -8,9 +8,9 @@ import simplejson as json
 FLUSH_INTERVAL = 10 # seconds
 
 
-def FlushThread(threading.Thread):
+class FlushThread(threading.Thread):
     def __init__(self, cube, lock):
-        super(self, this).__init__()
+        super(FlushThread, self).__init__()
         self.cube = cube
         self.lock = lock
         self.stop = False
@@ -37,8 +37,12 @@ def main():
             bytes_next = event.pop('_bytes_next')
             with flush_lock:
                 cube.add(event)
+
     except KeyboardInterrupt:
-        print "Stopping. Next log record at offset %d." % (bytes_next,)
+        pass
+
+    finally:
+        print "Next log record at offset %r." % (bytes_next,)
 
     flush_thread.stop = True
     flush_thread.join()
