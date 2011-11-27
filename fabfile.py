@@ -75,37 +75,26 @@ def deploy_logtail():
     run("cd '%s'; sandbox/bin/pip install -r logtail-requirements.txt" % REMOTE_REPO)
 
 
-def logtail():
-    bytes_offset = None
+def logtail(skip='0/0'):
+    print 'requesting records with skip=%r' % skip
 
-    if LOGTAIL_STATE_PATH is not None:
-        if os.path.isfile(LOGTAIL_STATE_PATH):
-            with open(LOGTAIL_STATE_PATH, 'rb') as f:
-                state = json.load(f)
-            bytes_offset = state['bytes_offset']
+    cmd = ("%(repo)s/sandbox/bin/python "
+           "%(repo)s/logtail.py "
+           "%(logdir)s access.log %(skip)s") % {
+               'repo': REMOTE_REPO,
+               'logdir': '/var/local/www-logs/apache/',
+               'skip': skip,
+           }
 
-    while True:
-        print 'requesting records with bytes_offset=%r' % bytes_offset
-        events_json = run("%(repo)s/sandbox/bin/python "
-                          "%(repo)s/logtail.py "
-                          "%(logdir)s/access.log %(bytes_offset)d" % {
-                              'repo': REMOTE_REPO,
-                              'logdir': '/var/local/www-logs/apache/',
-                              'bytes_offset': bytes_offset,
-                          })
-
-        with TemporaryFile() as tmp:
-            tmp.write(events_json)
-            tmp.seek(0)
-            state_json = subprocess.check_output(
-                ['python', 'import_logtail.py'], stdin=tmp)
-
-        if LOGTAIL_STATE_PATH is not None:
-            with open(LOGTAIL_STATE_PATH, 'wb') as f:
-                f.write(state_json)
-
-        state = json.loads(state_json)
-        if not state['get_more']:
-            print 'bytes_offset=%r' % bytes_offset
-            break
-        bytes_offset = state['bytes_offset']
+    print 'starting ssh logtail'
+    ssh_logtail = subprocess.Popen(['ssh', '-C', env['host_string'], cmd],
+                                   stdout=subprocess.PIPE)
+    print 'starting import_logtail'
+    import_logtail = subprocess.Popen(['python', 'import_logtail.py'],
+                                      stdin=ssh_logtail.stdout)
+    print '...'
+    import_logtail.wait()
+    print 'import_logtail stopped'
+    ssh_logtail.terminate()
+    ssh_logtail.wait()
+    print 'ssh logtail stopped'
