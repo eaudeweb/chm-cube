@@ -65,20 +65,21 @@ class LogReader(object):
 
         return 'chm-eu/%d-%d' % (year, week)
 
-    def stream_log_entries(self):
+    def stream_log_entries(self, out_file):
         log_file_name = self.determine_log_file_name()
 
         for n, line in enumerate(self.log_lines()):
             entry = parse_log_line(line)
             event = cube_event_for_entry(entry)
             event['id'] = "%s/%d" % (log_file_name, n)
-            print json.dumps(event)
+            json.dump(event, out_file)
+            out_file.write('\n')
 
 
 def main():
     log_dir, log_basename = sys.argv[1:3]
     log_reader = LogReader(log_dir, log_basename)
-    log_reader.stream_log_entries()
+    log_reader.stream_log_entries(sys.stdout)
 
 
 if __name__ == '__main__':
