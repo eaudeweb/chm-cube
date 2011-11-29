@@ -94,7 +94,7 @@ def logtail(skip=None):
     print 'requesting records with skip=%r' % skip
     cmd = ("%(repo)s/sandbox/bin/python "
            "%(repo)s/logtail.py "
-           "%(logdir)s access.log %(skip)s") % {
+           "%(logdir)s access.log '%(skip)s'") % {
                'repo': REMOTE_REPO,
                'logdir': '/var/local/www-logs/apache/',
                'skip': skip,
