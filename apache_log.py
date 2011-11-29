@@ -5,7 +5,7 @@ from dateutil.parser import parse as parse_date
 
 
 LogEntry = namedtuple('LogEntry', 'datetime duration method url vhost '
-                                  'status size useragent client')
+                                  'status size referrer useragent client')
 
 log_line_pattern = re.compile(
     r'^(?P<client>\S+) \S+ \S+ '
@@ -33,6 +33,7 @@ def parse_log_line(line):
                     vhost=match.group('vhost'),
                     status=int(match.group('status')),
                     size=size,
+                    referrer=match.group('referrer'),
                     useragent=match.group('useragent'),
                     client=match.group('client'))
 
@@ -53,6 +54,7 @@ def cube_event_for_entry(entry):
             'duration_ms': entry.duration * 10**3,
             'method': entry.method,
             'path': entry.url,
+            'referrer': entry.referrer,
             'status': entry.status,
             'size': entry.size,
             'useragent': entry.useragent,
