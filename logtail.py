@@ -71,7 +71,10 @@ class LogReader(object):
     def stream_log_entries(self, out_file, skip):
         log_file_name = self.determine_log_file_name()
 
-        skip_bytes, skip_entries = map(int, skip.split('/'))
+        if skip:
+            skip_bytes, skip_entries = map(int, skip.split('/'))
+        else:
+            skip_bytes, skip_entries = 0, 0
 
         for n, (line, bytes_count) in enumerate(self.log_lines(skip_bytes),
                                                 skip_entries):
