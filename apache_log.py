@@ -49,10 +49,13 @@ def cube_event_for_entry(entry):
         'type': 'chm_eu',
         'time': entry.datetime.isoformat(),
         'data': {
+            'client': entry.client,
             'duration_ms': entry.duration * 10**3,
+            'method': entry.method,
             'path': entry.url,
             'status': entry.status,
             'size': entry.size,
+            'useragent': entry.useragent,
             'vhost': entry.vhost,
         },
     }
