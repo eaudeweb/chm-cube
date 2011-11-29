@@ -21,6 +21,7 @@ def to_cube(name):
 
 _mongo_drop_js = """\
 ["chm_eu"].forEach(function(type) {
+  var event = type + "_events", metric = type + "_metrics";
   db[event].drop();
   db[metric].drop();
 });
