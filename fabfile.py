@@ -57,11 +57,14 @@ def mongo_schema():
     _mongo(_mongo_schema_js)
 
 
-def run(cmd):
+def manual_run(cmd):
+    """ `run` script that uses the system's ssh instead of paramiko """
     return subprocess.check_output(['ssh', '-C', env['host_string'], cmd])
 
 
 def deploy_logtail():
+    run = manual_run # beacause we need tunneling
+
     run("git init '%s'" % LOGTAIL_REMOTE_REPO)
 
     git_remote = "%s:%s" % (env['host_string'], LOGTAIL_REMOTE_REPO)
