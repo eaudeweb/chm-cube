@@ -115,7 +115,7 @@ def logtail(skip=None):
     _wait_keyboard_interrupt()
     next_skip = import_logtail.communicate()[0]
     print next_skip,
-    if LOGTAIL_STATE_PATH is not None:
+    if next_skip and LOGTAIL_STATE_PATH is not None:
         with open(LOGTAIL_STATE_PATH, 'wb') as f:
             f.write(next_skip)
 

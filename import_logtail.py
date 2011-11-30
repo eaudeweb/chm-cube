@@ -9,16 +9,14 @@ FLUSH_INTERVAL = 10 # seconds
 
 
 class FlushThread(threading.Thread):
-    def __init__(self, cube, lock):
+    def __init__(self, manual_flush):
         super(FlushThread, self).__init__()
-        self.cube = cube
-        self.lock = lock
+        self.manual_flush = manual_flush
         self.stop = False
 
     def run(self):
         while not self.stop:
-            with self.lock:
-                self.cube.flush()
+            self.manual_flush()
             time.sleep(FLUSH_INTERVAL)
 
 
@@ -26,10 +24,17 @@ def main():
     from to_cube import CubeUploader
     cube = CubeUploader("http://localhost:1080/1.0/event/put")
     flush_lock = threading.Lock()
-    flush_thread = FlushThread(cube, flush_lock)
+
+    state = {'skip': None, 'flushed_skip': None}
+
+    def manual_flush():
+        with flush_lock:
+            cube.flush()
+            state['flushed_skip'] = state['skip']
+
+    flush_thread = FlushThread(manual_flush)
     flush_thread.start()
 
-    skip = None
     try:
         while True:
             line = sys.stdin.readline()
@@ -37,7 +42,7 @@ def main():
                 break
             event = json.loads(line)
             event['data']['logtail'] = True
-            skip = event.pop('_skip')
+            state['skip'] = event.pop('_skip')
             with flush_lock:
                 cube.add(event)
 
@@ -45,11 +50,11 @@ def main():
         pass
 
     finally:
-        print skip
-
-    flush_thread.stop = True
-    flush_thread.join()
-    cube.flush()
+        flush_thread.stop = True
+        manual_flush()
+        if state['flushed_skip'] is not None:
+            print state['flushed_skip']
+        flush_thread.join()
 
 
 if __name__ == '__main__':
