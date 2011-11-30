@@ -3,11 +3,13 @@ import subprocess
 from tempfile import TemporaryFile
 import simplejson as json
 from fabric.api import env
-from fabric.api import local
+from fabric.api import local, run, cd
+from fabric.contrib.files import exists
 
 
 LOGTAIL_REMOTE_REPO = 'chm-cube'
 LOGTAIL_STATE_PATH = None
+REMOTE_REPO = 'chm-cube'
 
 
 try: from local_fabfile import *
@@ -119,3 +121,20 @@ def logtail(skip=None):
 
     ssh_logtail.terminate()
     ssh_logtail.wait()
+
+def deploy():
+    if not exists(REMOTE_REPO):
+        run("git init '%s'" % REMOTE_REPO)
+
+    git_remote = "%s:%s" % (env['host_string'], REMOTE_REPO)
+    local("git push -f '%s' master:incoming" % git_remote)
+    with cd(REMOTE_REPO):
+        run("git reset incoming --hard")
+
+    sandbox = REMOTE_REPO + '/sandbox'
+    if not exists(sandbox):
+        run("virtualenv --no-site-packages '%s'" % sandbox)
+        run("echo '*' > '%s/.gitignore'" % sandbox)
+
+    with cd(REMOTE_REPO):
+        run("sandbox/bin/pip install -r requirements.txt")
