@@ -6,7 +6,7 @@ from fabric.api import env
 from fabric.api import local
 
 
-REMOTE_REPO = 'chm-cube'
+LOGTAIL_REMOTE_REPO = 'chm-cube'
 LOGTAIL_STATE_PATH = None
 
 
@@ -62,18 +62,19 @@ def run(cmd):
 
 
 def deploy_logtail():
-    run("git init '%s'" % REMOTE_REPO)
+    run("git init '%s'" % LOGTAIL_REMOTE_REPO)
 
-    git_remote = "%s:%s" % (env['host_string'], REMOTE_REPO)
+    git_remote = "%s:%s" % (env['host_string'], LOGTAIL_REMOTE_REPO)
     local("git push -f '%s' master:incoming" % git_remote)
-    run("cd '%s'; git reset incoming --hard" % REMOTE_REPO)
+    run("cd '%s'; git reset incoming --hard" % LOGTAIL_REMOTE_REPO)
 
-    sandbox = REMOTE_REPO + '/sandbox'
+    sandbox = LOGTAIL_REMOTE_REPO + '/sandbox'
     run("test -d '%(sandbox)s' || virtualenv --no-site-packages '%(sandbox)s'" %
         {'sandbox': sandbox})
     run("echo '*' > '%s/.gitignore'" % sandbox)
 
-    run("cd '%s'; sandbox/bin/pip install -r logtail-requirements.txt" % REMOTE_REPO)
+    run("cd '%s'; sandbox/bin/pip install -r logtail-requirements.txt" %
+        LOGTAIL_REMOTE_REPO)
 
 
 def _wait_keyboard_interrupt():
@@ -96,7 +97,7 @@ def logtail(skip=None):
     cmd = ("%(repo)s/sandbox/bin/python "
            "%(repo)s/logtail.py "
            "%(logdir)s access.log '%(skip)s'") % {
-               'repo': REMOTE_REPO,
+               'repo': LOGTAIL_REMOTE_REPO,
                'logdir': '/var/local/www-logs/apache/',
                'skip': skip,
            }
